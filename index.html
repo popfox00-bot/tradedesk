@@ -454,6 +454,27 @@
     font-size:10.5px;font-weight:700;letter-spacing:0.02em;padding:3px 8px;border-radius:10px;
     border:1px solid var(--amber-dim);color:var(--amber);background:rgba(232,163,61,0.08);
   }
+  .sugg-wide-field{flex-basis:100%;}
+  .plan-card{
+    background:var(--turf-1);border:1px solid var(--amber-dim);border-radius:var(--radius);
+    padding:16px 18px 18px;margin-bottom:22px;
+  }
+  .plan-head h4{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin:0 0 3px;}
+  .plan-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:14px 0 10px;}
+  .plan-summary{font-size:13px;color:var(--chalk-dim);margin:6px 0 12px;line-height:1.6;}
+  .plan-summary b{color:var(--chalk);}
+  .plan-step{background:var(--turf-2);border:1px solid var(--line);border-radius:4px;padding:12px 14px;margin-bottom:10px;}
+  .plan-step-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;margin-bottom:8px;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+  .team-chip,.bl-chip{
+    font-family:'Archivo',sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:14px;cursor:pointer;
+    background:var(--turf-0);border:1px solid var(--line);color:var(--chalk-dim);
+  }
+  .team-chip.only{border-color:var(--good);color:var(--good);background:rgba(79,174,110,0.1);}
+  .team-chip.never{border-color:var(--bad);color:var(--bad);background:rgba(209,92,92,0.1);text-decoration:line-through;}
+  .bl-chip{border-color:var(--bad);color:var(--chalk);}
+  .bl-chip span{color:var(--bad);margin-left:6px;font-weight:700;}
+  .need-tag.surplus{border-color:var(--pos-wr);color:var(--pos-wr);background:rgba(74,144,217,0.08);}
   .need-tag.bad{border-color:var(--bad);color:var(--bad);background:rgba(209,92,92,0.08);}
   .need-tag.good{border-color:var(--good);color:var(--good);background:rgba(79,174,110,0.08);}
   .field-hint{font-size:9px; text-transform:none; letter-spacing:0; color:var(--chalk-faint); font-weight:500;}
@@ -709,6 +730,11 @@
   .fa-row .fa-val{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--amber);font-size:13px;width:38px;text-align:right;flex:none;}
   .fa-row .fa-note{flex:1 1 260px;color:var(--chalk-dim);font-size:12px;min-width:180px;}
   .fa-row .add-btn{flex:none;}
+  .fa-stats{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11.5px;color:var(--chalk-faint);padding-left:34px;}
+  .fa-stats b{color:var(--chalk-dim);font-weight:700;}
+  .fa-stats .hl{color:var(--amber);}
+  .stars{letter-spacing:1px;}
+  .stars.good{color:var(--good);} .stars.bad{color:var(--bad);}
   .fa-row.is-my-team{border-color:var(--pos-wr); background:rgba(74,144,217,0.09);}
   .fa-owner-tag{
     font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px;
@@ -881,6 +907,10 @@
   .pr-pos-players{grid-column:2/-1;font-size:11.5px;color:var(--chalk-faint);margin-top:-4px;}
   .pr-pos-num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;text-align:right;}
   .pr-pos-num.good{color:var(--good);} .pr-pos-num.bad{color:var(--bad);}
+  .pr-pos-sub{display:block;font-size:10.5px;font-weight:500;color:var(--chalk-faint);}
+  .pr-partners{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);}
+  .pr-partner-line{font-size:12.5px;color:var(--chalk-dim);padding:3px 0;line-height:1.5;}
+  .pr-partner-line b{color:var(--chalk);}
   .pr-breakdown-foot{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center;}
   .pr-breakdown-note{font-size:11.5px;color:var(--chalk-faint);}
   .poschip.FLEX{background:var(--chalk-dim);color:var(--turf-0);}
@@ -1119,6 +1149,8 @@
         <button class="reset-btn" id="refreshTradesBtn" style="flex:none;">Refresh trades</button>
       </div>
 
+      <div id="myTeamPlan"></div>
+
       <div class="sugg-controls-grid">
         <div class="field">
           <label>Team 1</label>
@@ -1200,6 +1232,7 @@
             <option value="impact">Best overall</option>
             <option value="even">Best for every team</option>
             <option value="needs">Fills team needs</option>
+            <option value="surplus">Surplus for need</option>
             <option value="team1">Biggest gain for Team 1</option>
             <option value="balance">Most balanced value</option>
             <option value="value">Most value moved</option>
@@ -1227,7 +1260,20 @@
         <div class="field sugg-check-row">
           <label class="sugg-check"><input type="checkbox" id="suggEveryoneWins" checked> Every team's lineup improves</label>
           <label class="sugg-check"><input type="checkbox" id="suggFillsNeed"> Fills a team need <span class="field-hint">(Team 1's, if set)</span></label>
+          <label class="sugg-check"><input type="checkbox" id="suggSurplusFit"> Uses surplus to fill a need <span class="field-hint">(Team 1's, if set)</span></label>
           <label class="sugg-check"><input type="checkbox" id="suggVariety"> One trade per team group</label>
+        </div>
+        <div class="field sugg-wide-field">
+          <label>Trade partners <span class="field-hint">(tap a team: only these → never → any)</span></label>
+          <div class="chip-row" id="suggPartnerChips"></div>
+        </div>
+        <div class="field sugg-wide-field">
+          <label>Never trade <span class="field-hint">(excluded from every suggestion and from Trade Help; saved with this league)</span></label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <input type="text" id="blacklistInput" list="suggPlayerList" placeholder="Add a player…" autocomplete="off" class="sugg-text-input">
+            <button class="reset-btn" id="blacklistAddBtn">Add</button>
+          </div>
+          <div class="chip-row" id="blacklistChips"></div>
         </div>
       </div>
 
@@ -1291,6 +1337,20 @@
           <label>Add to team</label>
           <select id="faTeamSelect">
             <option value="">Select a team…</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Rank by</label>
+          <select id="faSortBy">
+            <option value="value">Trade value</option>
+            <option value="pts">Points scored (season)</option>
+            <option value="ppg">Points per game</option>
+            <option value="recent">Last 3 weeks (PPG)</option>
+            <option value="vorp">Points over replacement</option>
+            <option value="sos">Rest-of-season SOS</option>
+            <option value="playoff">Playoff SOS (wks 15–17)</option>
+            <option value="ecr">Consensus rank (ECR)</option>
+            <option value="upside">Upside vs. bust</option>
           </select>
         </div>
         <div class="field">
@@ -1384,6 +1444,15 @@
             <button class="th-apply-btn" id="applyThemeBtn" style="padding:9px 18px;">Apply color</button>
             <button class="reset-btn" id="resetThemeBtn">Reset to default</button>
           </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h4>Season Stats</h4>
+        <div class="settings-impact-panel">
+          <div class="suggestions-sub" style="margin-bottom:14px;">Real production for every player — games played, total points, points per game and the last three weeks — pulled from Sleeper's public stats feed and scored with this league's settings below. It's blended into trade value (more weight as the season goes on) and shown in the Free Agents rankings. Refreshes automatically every few hours when the app is open.</div>
+          <div style="font-size:12.5px; color:var(--chalk-faint); margin-bottom:14px;" id="statsStatus">No season stats loaded yet.</div>
+          <button class="th-apply-btn" id="refreshStatsBtn" style="padding:9px 18px;">Refresh stats now</button>
         </div>
       </div>
 
@@ -1550,7 +1619,9 @@ const DEFAULT_SCORING = {
   sack: 1, defInt: 2, fumbleRec: 2, safety: 2, forcedFumble: 1, blockedKick: 2,
   stTD: 6, stForcedFumble: 1, stFumbleRec: 1,
   stPlayerTD: 6, stPlayerForcedFumble: 1, stPlayerFumbleRec: 1,
-  fumbleLost: -2, fumbleRecTD: 6
+  fumbleLost: -2, fumbleRecTD: 6,
+  // valuation weights (not scoring rules): 1 = standard emphasis, 0 = ignore
+  sosWeight: 1, statsWeight: 1
 };
 
 // Neutral reference point used purely to measure how far this league's
@@ -1572,19 +1643,35 @@ let SCORING_SETTINGS = {...DEFAULT_SCORING};
 // role change), keyed by exact player name, scoped to the active league.
 let VALUE_OVERRIDES = {};
 
+// Players never to include in suggested or refined trades (per league, synced).
+let TRADE_BLACKLIST = [];
+function isBlacklisted(name){ return TRADE_BLACKLIST.includes(name); }
+
 // Position value multipliers baked from the position/decay model — these
 // are the position-scarcity weights before any scoring-settings adjustment.
+// Skill positions sit at 1.0: consensus overall rank already prices each
+// position's scarcity, and the production side measures points over a
+// replacement-level starter, so an extra position boost would count it twice.
 const VALUE_SCALE = 45.0;
 const VALUE_DECAY = 40.0;
-const BASE_POS_MULT = {QB:0.85, RB:1.12, WR:1.00, TE:1.05, K:0.12, DEF:0.12};
+const BASE_POS_MULT = {QB:1.0, RB:1.0, WR:1.0, TE:1.0, K:0.12, DEF:0.12};
 const BASE_STARTABLE = {QB:10, RB:33, WR:33, TE:14, K:10, DEF:10};
+// Replacement level for production: the Nth-best scorer at each position,
+// roughly the last starter across a 10-team 1QB/2RB/2WR/1TE/2FLEX league.
+const REPLACEMENT_RANK = {QB:12, RB:28, WR:30, TE:12, K:10, DEF:10};
+
+function valueCurve(rank){ return VALUE_SCALE * Math.exp(-rank / VALUE_DECAY); }
+
+// 0 stars means the rating was missing from the source data, not "the
+// hardest schedule in football" — treat it as neutral.
+function starsOrNeutral(v){ return (v === undefined || v === null || v === 0) ? 3 : v; }
 
 // Translates the league's scoring settings into modest, explainable
 // position-level multipliers. These are directional adjustments grounded in
 // how the scoring format shifts real fantasy value (PPR tilts pass-catchers,
 // deep FG bonuses help kickers a little, rich defense scoring raises DEF's
-// ceiling) — not a full stat-line re-simulation, which this tool has no way
-// to do without real box-score projections per player.
+// ceiling). They apply to the consensus-rank side of value only; the
+// production side already uses points scored under this league's rules.
 function computeScoringMultipliers(s){
   const mult = {QB:1, RB:1, WR:1, TE:1, K:1, DEF:1};
 
@@ -1601,17 +1688,11 @@ function computeScoringMultipliers(s){
   mult.WR *= (1 + rushRecTDDelta * 0.02);
   mult.TE *= (1 + rushRecTDDelta * 0.02);
 
-  // Kicker richness: weighted-average FG value vs a flat-3 baseline, using a
-  // rough real-world distribution of attempt distances
   const distWeights = {fg0_19:0.05, fg20_29:0.25, fg30_39:0.30, fg40_49:0.25, fg50_59:0.12, fg60plus:0.03};
   let weightedFG = 0;
   for(const k in distWeights) weightedFG += (s[k] ?? NEUTRAL_SCORING[k]) * distWeights[k];
   mult.K *= (1 + (weightedFG - 3) * 0.12);
 
-  // Defense richness: wider points-allowed spread and/or active yardage-
-  // allowed tiers both raise a defense's scoring ceiling (and bust risk),
-  // making quality defenses meaningfully more valuable than in a bare-bones
-  // points-allowed-only system
   const paSpread = (s.pa0 - s.pa35plus);
   const baselineSpread = (NEUTRAL_SCORING.pa0 - NEUTRAL_SCORING.pa35plus) || 9;
   let defBump = ((paSpread - baselineSpread) / baselineSpread) * 0.5;
@@ -1623,43 +1704,76 @@ function computeScoringMultipliers(s){
   return mult;
 }
 
+// Trade value = a blend of two views of the same player, then schedule and
+// risk adjustments:
+//   1. Consensus: FantasyPros overall rank on a decay curve (the market).
+//   2. Production: this season's points per game under THIS league's
+//      scoring, measured over a replacement-level starter at the position
+//      (points over replacement), ranked league-wide on the same curve.
+//      Its share grows with games played — up to 50% by week ~7 — so a
+//      two-game sample can't swamp the consensus view.
+//   3. Schedule: rest-of-season SOS (±10%) and fantasy-playoff SOS (±5%) —
+//      the strongest single adjustment, but capped at ±15% combined.
+//   4. Risk: upside vs. bust spread (±6%), starter-tier premium, and the
+//      Weeks 1–4 schedule nudge while it still applies.
 function computePlayerValue(p, scoringMult){
   const m = scoringMult[p.pos] || 1.0;
-  // Scoring-driven adjustments act on the player's EFFECTIVE overall rank,
-  // not just as a flat multiplier tacked onto an already-decayed value — a
-  // richer scoring format for a position doesn't just nudge its ceiling, it
-  // changes where that position's players effectively sit against everyone
-  // else. Dividing rank by the multiplier moves them up (or down) the curve
-  // accordingly, which is what actually makes the adjustment show up in a
-  // meaningful way for low-value positions like DEF/K, not just skill spots.
-  const effectiveRank = p.ovrRank / m;
-  const base = VALUE_SCALE * Math.exp(-effectiveRank / VALUE_DECAY);
-  const posMult = BASE_POS_MULT[p.pos] * m;
+  const consensus = valueCurve(p.ovrRank / m) * m;
+  const st = PLAYER_STATS.byName[p.name];
+  let production = null, prodShare = 0;
+  if(st && p.prodRank && st.gp > 0){
+    production = valueCurve(p.prodRank);
+    prodShare = Math.min(0.5, st.gp * 0.07) * Math.max(0, SCORING_SETTINGS.statsWeight ?? 1);
+    prodShare = Math.min(prodShare, 0.8);
+  }
+  const base = production === null ? consensus : (1 - prodShare) * consensus + prodShare * production;
+
   const threshold = BASE_STARTABLE[p.pos] || 10;
   let starterMult;
   if(p.posRank <= threshold) starterMult = 1.15;
   else if(p.posRank <= threshold * 1.6) starterMult = 1.0;
   else starterMult = 0.75;
-  const esm = p.earlyBoost || 1.0;
-  // Full-season strength of schedule (FantasyPros SOS SEASON rating, 1-5
-  // stars, 3 = neutral) and the Upside/Bust risk-reward spread — real,
-  // sourced per-player signals beyond pure draft-day rank, applied as
-  // modest, capped adjustments so a tough-schedule or bust-risk player
-  // doesn't get buried, just nudged.
-  const sosStars = (p.sosStars !== undefined) ? p.sosStars : 3;
-  const upside = (p.upside !== undefined) ? p.upside : 3;
-  const bust = (p.bust !== undefined) ? p.bust : 3;
-  const playoffStars = (p.playoffStars !== undefined) ? p.playoffStars : 3;
-  const sosMult = 1 + (sosStars - 3) * 0.02;
-  const playoffMult = 1 + (playoffStars - 3) * 0.015;
-  const upsideBustMult = 1 + (upside - bust) * 0.015;
-  return Math.round(base * posMult * starterMult * esm * sosMult * playoffMult * upsideBustMult * 10) / 10;
+  // the Weeks 1–4 schedule nudge stops applying once the season is past it
+  const esm = (PLAYER_STATS.week && PLAYER_STATS.week > 5) ? 1.0 : (p.earlyBoost || 1.0);
+  const sosW = Math.max(0, SCORING_SETTINGS.sosWeight ?? 1);
+  const sosMult = 1 + (starsOrNeutral(p.sosStars) - 3) * 0.05 * sosW;
+  const playoffMult = 1 + (starsOrNeutral(p.playoffStars) - 3) * 0.025 * sosW;
+  const upsideBustMult = 1 + (starsOrNeutral(p.upside) - starsOrNeutral(p.bust)) * 0.015;
+  const value = base * BASE_POS_MULT[p.pos] * starterMult * esm * sosMult * playoffMult * upsideBustMult;
+  p.valueParts = {consensus, production, prodShare, sosMult, playoffMult, riskMult: upsideBustMult * starterMult * esm};
+  return Math.round(value * 10) / 10;
+}
+
+// Production ranks: every player with games this season, ranked league-wide
+// by points per game over their position's replacement level. Season PPG is
+// blended 70/30 with the last three weeks so current role changes show up.
+function computeProductionRanks(){
+  const withStats = [];
+  for(const name in ALL_PLAYERS){
+    const p = ALL_PLAYERS[name];
+    p.prodRank = null; p.vorp = null; p.ptsPosRank = null;
+    const st = PLAYER_STATS.byName[name];
+    if(!st || !(st.gp > 0)) continue;
+    const ppg = st.recentGp > 0 ? 0.7 * st.ppg + 0.3 * st.recentPpg : st.ppg;
+    withStats.push({p, ppg, pts: st.pts});
+  }
+  const repl = {};
+  ['QB','RB','WR','TE','K','DEF'].forEach(pos=>{
+    const arr = withStats.filter(x=>x.p.pos===pos).sort((a,b)=>b.ppg-a.ppg);
+    const idx = Math.min(REPLACEMENT_RANK[pos], arr.length) - 1;
+    repl[pos] = idx >= 0 ? arr[idx].ppg : 0;
+    [...arr].sort((a,b)=>b.pts-a.pts).forEach((x,i) => x.p.ptsPosRank = i + 1);
+  });
+  withStats.forEach(x => x.p.vorp = x.ppg - repl[x.p.pos]);
+  withStats.sort((a,b)=>b.p.vorp-a.p.vorp).forEach((x,i) => x.p.prodRank = i + 1);
 }
 
 // Recomputes every player's value from current SCORING_SETTINGS and pushes
 // the result into ALL_PLAYERS and every live clone in LEAGUE/FREE_AGENTS —
-// called once at startup and again any time settings are saved.
+// called once at startup and again any time settings or stats change.
 function recomputeAllValues(){
+  computeLeagueScoringPoints();
+  computeProductionRanks();
   const mult = computeScoringMultipliers(SCORING_SETTINGS);
   for(const name in ALL_PLAYERS){
     let v = computePlayerValue(ALL_PLAYERS[name], mult);
@@ -1667,10 +1781,167 @@ function recomputeAllValues(){
     if(override) v = Math.round(v * override * 10) / 10;
     ALL_PLAYERS[name].value = v;
   }
+  const sync = p => {
+    const src = ALL_PLAYERS[p.name];
+    p.value = src.value; p.prodRank = src.prodRank; p.vorp = src.vorp; p.ptsPosRank = src.ptsPosRank; p.valueParts = src.valueParts;
+  };
   for(const team of TEAM_NAMES){
-    if(LEAGUE[team]) LEAGUE[team].forEach(p => { p.value = ALL_PLAYERS[p.name].value; });
+    if(LEAGUE[team]) LEAGUE[team].forEach(sync);
   }
-  FREE_AGENTS.forEach(p => { p.value = ALL_PLAYERS[p.name].value; });
+  FREE_AGENTS.forEach(sync);
+}
+
+// =====================================================================
+// SEASON STATS — real box-score production pulled from Sleeper's public
+// API (no key needed) in the browser, then scored with THIS league's
+// settings. Cached per device; refreshed automatically when stale.
+// =====================================================================
+const PLAYER_STATS_KEY = 'lhsTradeDeskPlayerStats_v1';
+const STATS_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+let PLAYER_STATS = {byName: {}, raw: {}, season: null, week: null, fetchedAt: null, matched: 0, error: ''};
+
+const TEAM_ABBR_FIX = {JAX:'JAC', WSH:'WAS', LA:'LAR', OAK:'LV', SD:'LAC'};
+function normTeamAbbr(t){ t = (t || '').toUpperCase(); return TEAM_ABBR_FIX[t] || t; }
+
+// Fantasy points for one stat line under this league's rules. Kickers and
+// defenses fall back to Sleeper's own totals when the detail isn't there.
+function leaguePointsFromStats(st, pos){
+  const S = SCORING_SETTINGS, g = k => +st[k] || 0;
+  if(pos === 'K'){
+    const fg = g('fgm_0_19')*S.fg0_19 + g('fgm_20_29')*S.fg20_29 + g('fgm_30_39')*S.fg30_39 + g('fgm_40_49')*S.fg40_49
+      + (st.fgm_50_59 !== undefined ? g('fgm_50_59')*S.fg50_59 + g('fgm_60p')*S.fg60plus : g('fgm_50p')*S.fg50_59);
+    const pts = fg + g('xpm')*S.patMade + g('fgmiss')*S.fgMissed + g('xpmiss')*S.patMissed;
+    return pts || g('pts_half_ppr') || g('pts_std');
+  }
+  if(pos === 'DEF'){
+    const pa = g('pts_allow_0')*S.pa0 + g('pts_allow_1_6')*S.pa1_6 + g('pts_allow_7_13')*S.pa7_13 + g('pts_allow_14_20')*S.pa14_20
+      + g('pts_allow_21_27')*S.pa21_27 + g('pts_allow_28_34')*S.pa28_34 + g('pts_allow_35p')*S.pa35plus;
+    const ya = g('yds_allow_0_100')*S.ydsA_lt100 + g('yds_allow_100_199')*S.ydsA_100_199 + g('yds_allow_200_299')*S.ydsA_200_299
+      + g('yds_allow_300_349')*S.ydsA_300_349 + g('yds_allow_350_399')*S.ydsA_350_399 + g('yds_allow_400_449')*S.ydsA_400_449
+      + g('yds_allow_450_499')*S.ydsA_450_499 + g('yds_allow_500_549')*S.ydsA_500_549 + g('yds_allow_550p')*S.ydsA_550plus;
+    const plays = g('def_td')*S.defTD + g('sack')*S.sack + g('int')*S.defInt + g('fum_rec')*S.fumbleRec + g('safe')*S.safety
+      + g('ff')*S.forcedFumble + g('blk_kick')*S.blockedKick + (g('def_st_td') || g('st_td'))*S.stTD
+      + g('def_st_ff')*S.stForcedFumble + g('def_st_fum_rec')*S.stFumbleRec;
+    const pts = pa + ya + plays;
+    return (pa !== 0 || plays !== 0) ? pts : (g('pts_half_ppr') || g('pts_std'));
+  }
+  const pts = g('pass_yd')*S.passYardPts + g('pass_td')*S.passTD + g('pass_int')*S.passInt + g('pass_2pt')*S.pass2pt
+    + g('rush_yd')*S.rushYardPts + g('rush_td')*S.rushTD + g('rush_2pt')*S.rush2pt
+    + g('rec')*S.reception + g('rec_yd')*S.recYardPts + g('rec_td')*S.recTD + g('rec_2pt')*S.rec2pt
+    + g('fum_lost')*S.fumbleLost + g('st_td')*S.stPlayerTD + g('fum_rec_td')*S.fumbleRecTD;
+  if(pts !== 0) return pts;
+  return S.reception >= 1 ? g('pts_ppr') : (S.reception > 0 ? g('pts_half_ppr') : g('pts_std'));
+}
+
+// Rebuilds PLAYER_STATS.byName (points in this league's scoring) from the
+// cached raw stat lines — re-run whenever scoring settings change.
+function computeLeagueScoringPoints(){
+  PLAYER_STATS.byName = {};
+  for(const name in PLAYER_STATS.raw){
+    const r = PLAYER_STATS.raw[name];
+    const p = ALL_PLAYERS[name];
+    if(!p) continue;
+    const pts = leaguePointsFromStats(r.season, p.pos);
+    const gp = +r.season.gp || +r.season.gms_active || 0;
+    let recentPts = 0, recentGp = 0;
+    (r.recent || []).forEach(w => { const wgp = +w.gp || +w.gms_active || (Object.keys(w).length > 2 ? 1 : 0); if(wgp){ recentPts += leaguePointsFromStats(w, p.pos); recentGp += wgp; } });
+    PLAYER_STATS.byName[name] = {
+      gp, pts, ppg: gp ? pts / gp : 0,
+      recentGp, recentPpg: recentGp ? recentPts / recentGp : 0,
+      team: r.team
+    };
+  }
+}
+
+// Match a Sleeper row to a player in the pool: DEF by team, everyone else
+// by normalized name (position first, to dodge same-name collisions).
+function buildStatsNameIndex(){
+  const byNamePos = {}, byName = {}, defByTeam = {};
+  for(const name in ALL_PLAYERS){
+    const p = ALL_PLAYERS[name];
+    if(p.pos === 'DEF'){ defByTeam[normTeamAbbr(p.team)] = name; continue; }
+    const key = normPlayerNameForMatch(name);
+    byNamePos[key + '|' + p.pos] = name;
+    if(!byName[key]) byName[key] = name;
+  }
+  return {byNamePos, byName, defByTeam};
+}
+function matchStatsRow(idx, first, last, pos, team, playerId){
+  if(pos === 'DEF') return idx.defByTeam[normTeamAbbr(team || playerId)] || null;
+  const key = normPlayerNameForMatch(`${first || ''} ${last || ''}`);
+  return idx.byNamePos[key + '|' + pos] || idx.byName[key] || null;
+}
+
+const SLEEPER_POSITIONS = ['QB','RB','WR','TE','K','DEF'];
+function sleeperStatsUrl(season, week){
+  const pos = SLEEPER_POSITIONS.map(p => 'position[]=' + p).join('&');
+  return `https://api.sleeper.com/stats/nfl/${season}${week ? '/' + week : ''}?season_type=regular&${pos}&order_by=pts_half_ppr`;
+}
+
+// Rows come back as [{player_id, player:{first_name,last_name,position,team}, team, stats:{...}}].
+function indexSleeperRows(rows, idx){
+  const out = {};
+  (Array.isArray(rows) ? rows : []).forEach(r=>{
+    const pl = r.player || {};
+    const pos = pl.position || (r.player_id && /^[A-Z]{2,3}$/.test(r.player_id) ? 'DEF' : '');
+    const name = matchStatsRow(idx, pl.first_name, pl.last_name, pos, r.team || pl.team, r.player_id);
+    if(name && r.stats) out[name] = {stats: r.stats, team: r.team || pl.team};
+  });
+  return out;
+}
+
+async function fetchJson(url){
+  const resp = await fetch(url);
+  if(!resp.ok) throw new Error(`HTTP ${resp.status} from ${new URL(url).host}`);
+  return resp.json();
+}
+
+async function refreshPlayerStats(opts){
+  opts = opts || {};
+  const statusEl = () => document.getElementById('statsStatus');
+  if(statusEl()) statusEl().textContent = 'Fetching season stats from Sleeper…';
+  try{
+    const nflState = await fetchJson('https://api.sleeper.app/v1/state/nfl');
+    // before Week 1 of a new season, the useful numbers are last season's
+    const season = nflState.season_type === 'regular' || nflState.season_type === 'post' ? nflState.season : (nflState.previous_season || nflState.season);
+    const week = +nflState.week || null;
+    const idx = buildStatsNameIndex();
+    const seasonRows = indexSleeperRows(await fetchJson(sleeperStatsUrl(season)), idx);
+    const recentWeeks = [];
+    if(nflState.season_type === 'regular' && week) for(let w = week - 1; w >= Math.max(1, week - 3); w--) recentWeeks.push(w);
+    const weekly = await Promise.all(recentWeeks.map(w => fetchJson(sleeperStatsUrl(season, w)).then(rows => indexSleeperRows(rows, idx)).catch(() => ({}))));
+    const raw = {};
+    for(const name in seasonRows){
+      raw[name] = {season: seasonRows[name].stats, team: seasonRows[name].team, recent: weekly.map(wk => wk[name] && wk[name].stats).filter(Boolean)};
+    }
+    if(Object.keys(raw).length === 0) throw new Error('Sleeper returned no stats that match this player pool.');
+    PLAYER_STATS = {byName: {}, raw, season, week, fetchedAt: new Date().toISOString(), matched: Object.keys(raw).length, error: ''};
+    try{ localStorage.setItem(PLAYER_STATS_KEY, JSON.stringify({raw, season, week, fetchedAt: PLAYER_STATS.fetchedAt})); } catch(e){ /* storage full/unavailable — keep in memory */ }
+    onPlayerStatsChanged();
+    if(!opts.silent) showToast(`Season stats updated — ${PLAYER_STATS.matched} players matched.`);
+  } catch(e){
+    PLAYER_STATS.error = (e && e.message) ? e.message : String(e);
+    if(!opts.silent) showToast("Couldn't fetch season stats — using the last saved copy.");
+  }
+  renderStatsStatus();
+}
+
+function loadCachedPlayerStats(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(PLAYER_STATS_KEY) || 'null');
+    if(saved && saved.raw) PLAYER_STATS = {byName: {}, raw: saved.raw, season: saved.season, week: saved.week, fetchedAt: saved.fetchedAt, matched: Object.keys(saved.raw).length, error: ''};
+  } catch(e){ /* ignore */ }
+}
+loadCachedPlayerStats();
+
+function renderStatsStatus(){
+  const el = document.getElementById('statsStatus');
+  if(!el) return;
+  let txt = PLAYER_STATS.fetchedAt
+    ? `${PLAYER_STATS.season} season through week ${Math.max(0, (PLAYER_STATS.week || 1) - 1)} · ${PLAYER_STATS.matched} players matched · updated ${new Date(PLAYER_STATS.fetchedAt).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})}`
+    : 'No season stats loaded yet — values use consensus rankings only.';
+  if(PLAYER_STATS.error) txt += ` · Last refresh failed: ${PLAYER_STATS.error}`;
+  el.textContent = txt;
 }
 
 function clonePlayer(name){
@@ -1764,6 +2035,7 @@ function applyActiveLeague(restored){
   TEAM_NAMES = [...rec.teamNames];
   SCORING_SETTINGS = {...DEFAULT_SCORING, ...rec.scoringSettings};
   VALUE_OVERRIDES = {...(rec.valueOverrides || {})};
+  TRADE_BLACKLIST = [...(rec.tradeBlacklist || [])];
   recomputeAllValues();
   const built = buildFromRosterMap(rec.rosters);
   LEAGUE = built.league;
@@ -1842,6 +2114,7 @@ function persistRosterState(){
       rec.myTeam = state.myTeam || '';
       rec.teamNames = [...TEAM_NAMES];
       rec.valueOverrides = VALUE_OVERRIDES;
+      rec.tradeBlacklist = TRADE_BLACKLIST;
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify({activeLeagueId: ACTIVE_LEAGUE_ID, leagues: LEAGUES, savedAt: new Date().toISOString()}));
   } catch(e){ storageAvailable = false; }
@@ -2169,6 +2442,7 @@ function refreshAllTeamDropdowns(){
 
 function renderEverythingForLeagueSwitch(){
   refreshAllTeamDropdowns();
+  if(typeof renderPartnerChips === 'function'){ renderPartnerChips(); renderBlacklistChips(); }
   invalidateSuggestions();
   powerRankingsCache = null;
   renderAll();
@@ -2310,10 +2584,15 @@ const state = {
   suggEveryoneWins: true,
   suggVariety: false,
   suggFillsNeed: false,
+  suggSurplusFit: false,
+  suggPartnerOnly: [],
+  suggPartnerNever: [],
   powerTeam: '',
   suggShowCount: 48,
   faPosFilter: 'ALL',
-  faViewMode: 'available'
+  faViewMode: 'available',
+  faSortBy: 'value',
+  faShowCount: 50
 };
 
 // Push the global "My Team" identity into every tab's default team selection.
@@ -2775,8 +3054,8 @@ function invalidateSuggestions(){
   refreshSuggPlayerList();
 }
 
-function tradeable(team){
-  return LEAGUE[team].filter(p => p.pos !== 'K' && p.pos !== 'DEF' && p.value >= MIN_TRADE_VALUE);
+function tradeable(team, rosters){
+  return (rosters || LEAGUE)[team].filter(p => p.pos !== 'K' && p.pos !== 'DEF' && p.value >= MIN_TRADE_VALUE && !isBlacklisted(p.name));
 }
 
 function swapRoster(roster, outNames, inPlayers){
@@ -2834,11 +3113,12 @@ function playerCombos(pool, maxSize){
 // combos inside the value window, which skips the hopeless mismatches
 // without ever evaluating them.
 const PAIR_SIZE_OK = (nA, nB) => nA + nB <= 4;
-function generatePairTrades(A, B, out){
-  const rosterA = LEAGUE[A], rosterB = LEAGUE[B];
+function generatePairTrades(A, B, out, rosters){
+  rosters = rosters || LEAGUE;
+  const rosterA = rosters[A], rosterB = rosters[B];
   const baseA = optimalLineupValue(rosterA), baseB = optimalLineupValue(rosterB);
-  const combosA = playerCombos(tradeable(A), 3);
-  const combosB = playerCombos(tradeable(B), 3).sort((x,y)=>x.value-y.value);
+  const combosA = playerCombos(tradeable(A, rosters), 3);
+  const combosB = playerCombos(tradeable(B, rosters), 3).sort((x,y)=>x.value-y.value);
   const bVals = combosB.map(c=>c.value);
   const lo = (2 - SUGG_MAX_SWING) / (2 + SUGG_MAX_SWING);
   const hi = (2 + SUGG_MAX_SWING) / (2 - SUGG_MAX_SWING);
@@ -3138,6 +3418,7 @@ function finalizeSuggestions(raw){
     // That's weighted into the overall score, so a trade that plugs a real
     // hole can outrank one with a bigger raw gain at a position of strength.
     s.needsFilled = [];
+    s.surplusFits = [];
     s.needBonus = 0;
     for(const t of s.teams){
       const outNames = s.moves.filter(m=>m.from===t).map(m=>m.player);
@@ -3145,6 +3426,16 @@ function finalizeSuggestions(raw){
       const g = needGains(profiles.teams[t], LEAGUE[t], swapRoster(LEAGUE[t], outNames, incoming));
       g.filled.forEach(f => s.needsFilled.push({team: t, pos: f.pos, gain: f.gain}));
       s.needBonus += g.bonus;
+      // surplus-for-need: the team plugs a need using only pieces it can
+      // spare — bench players, or players from a position where its starters
+      // are above league average
+      if(g.filled.length && outNames.length){
+        const tp = profiles.teams[t];
+        const starters = new Set(BREAKDOWN_POSITIONS.flatMap(pos => tp.slots[pos].map(x=>x.name)));
+        const outPlayers = s.moves.filter(m=>m.from===t).map(m=>findPlayer(m.from, m.player));
+        const spare = outPlayers.every(x => !starters.has(x.name) || (tp.vsAvg[x.pos] ?? 0) >= 0.05);
+        if(spare) s.surplusFits.push({team: t, gives: [...new Set(outPlayers.map(x=>x.pos))], gets: g.filled.map(f=>f.pos)});
+      }
     }
     s.score += s.needBonus * NEED_SCORE_WEIGHT;
   });
@@ -3179,6 +3470,15 @@ function suggestionMatchesFilters(s){
   if(s.valueMoved < state.suggMinValue) return false;
   if(state.suggMaxPlayers && s.moves.length > state.suggMaxPlayers) return false;
   if(state.suggEveryoneWins && s.minImpact <= 0) return false;
+  if(s.teams.some(t => state.suggPartnerNever.includes(t))) return false;
+  if(state.suggPartnerOnly.length){
+    const anchors = [team1, team2].filter(Boolean);
+    if(!s.teams.every(t => anchors.includes(t) || state.suggPartnerOnly.includes(t))) return false;
+  }
+  if(state.suggSurplusFit){
+    const fitTeam = team1 || team2;
+    if(!s.surplusFits.some(f => !fitTeam || f.team === fitTeam)) return false;
+  }
   if(state.suggFillsNeed){
     const needTeam = team1 || team2;
     if(!s.needsFilled.some(f => !needTeam || f.team === needTeam)) return false;
@@ -3210,6 +3510,7 @@ function sortSuggestions(list){
     fewest: (a,b) => a.moves.length - b.moves.length || b.score - a.score,
     value: (a,b) => b.valueMoved - a.valueMoved || b.score - a.score,
     even: (a,b) => b.minImpact - a.minImpact || b.score - a.score,
+    surplus: (a,b) => (b.surplusFits.length - a.surplusFits.length) || (b.needBonus - a.needBonus) || b.score - a.score,
     needs: t1
       ? (a,b) => needGainFor(b, t1) - needGainFor(a, t1) || b.score - a.score
       : (a,b) => b.needBonus - a.needBonus || b.score - a.score,
@@ -3223,6 +3524,8 @@ function renderSuggestions(){
   const t1El = document.getElementById('suggTeam1'), t2El = document.getElementById('suggTeam2');
   if(t1El) t1El.value = state.suggTeam1 || '';
   if(t2El) t2El.value = state.suggTeam2 || '';
+  const planValid = state.lastPlan && state.lastPlan.forTeam === state.myTeam && state.lastPlan.rosterSig === rosterSignature();
+  renderMyTeamPlan(planValid ? state.lastPlan : null);
   if(!suggestionCache){ ensureSuggestionCache(); return; }
 
   let filtered = sortSuggestions(suggestionCache.filter(suggestionMatchesFilters));
@@ -3277,7 +3580,9 @@ function renderSuggestions(){
         <span class="sugg-type-tag">${typeLabel}</span>
       </div>
       <div class="sugg-moves-list">${movesHtml}</div>
-      ${s.needsFilled.length ? `<div class="need-tags">${s.needsFilled.map(f => `<span class="need-tag" title="Starting ${f.pos} value +${fmt(f.gain)}">Fills ${f.pos} need · ${f.team}</span>`).join('')}</div>` : ''}
+      ${(s.needsFilled.length || s.surplusFits.length) ? `<div class="need-tags">${
+        s.surplusFits.map(f => `<span class="need-tag surplus" title="${f.team} gives only spare pieces">Surplus ${f.gives.join('/')} → ${f.gets.join('/')} need · ${f.team}</span>`).join('')
+      }${s.needsFilled.filter(f => !s.surplusFits.some(x => x.team === f.team && x.gets.includes(f.pos))).map(f => `<span class="need-tag" title="Starting ${f.pos} value +${fmt(f.gain)}">Fills ${f.pos} need · ${f.team}</span>`).join('')}</div>` : ''}
       <div class="sugg-card-foot">
         <div class="sugg-impact-line">Lineup impact: <span class="figure">${impactStr}</span></div>
         <div class="sugg-swing-line">Value balance: <span class="figure">±${swingPct}%</span> · Value moved: <span class="figure">${fmt(s.valueMoved)}</span> · Avg improvement: <span class="figure">${s.pctImprovement>=0?'+':''}${s.pctImprovement.toFixed(1)}%</span></div>
@@ -3301,6 +3606,158 @@ function renderSuggestions(){
       loadSuggestion(s);
     });
   });
+}
+
+// =====================================================================
+// PATH TO #1 — plans a short sequence of trades that lifts My Team to the
+// top of the Power Rankings (power score = optimal starting-lineup value).
+// Each step searches every 1-for-1 through 2-for-2 / 3-for-1 deal with
+// every other team on the rosters as they'd stand after the previous
+// steps, keeps only deals the partner has a reason to accept (their lineup
+// doesn't get worse and value is within the fairness limit), and picks
+// the one that most improves My Team's margin over the best rival — so a
+// deal that also makes the current #1 stronger is marked down.
+// =====================================================================
+// Changes whenever rosters or values change, so a stale plan isn't shown.
+function rosterSignature(){
+  return TEAM_NAMES.map(t => t + ':' + LEAGUE[t].map(p => p.name + '=' + p.value).join(',')).join('|') + '|' + TRADE_BLACKLIST.join(',');
+}
+
+function cloneRosters(){
+  const r = {};
+  TEAM_NAMES.forEach(t => r[t] = LEAGUE[t].slice());
+  return r;
+}
+function applyTradeToRosters(rosters, moves){
+  const next = {...rosters};
+  const byTeam = {};
+  moves.forEach(m => { (byTeam[m.from] = byTeam[m.from] || {out: [], in: []}).out.push(m.player); (byTeam[m.to] = byTeam[m.to] || {out: [], in: []}).in.push(rosters[m.from].find(p=>p.name===m.player)); });
+  for(const t in byTeam) next[t] = swapRoster(rosters[t], byTeam[t].out, byTeam[t].in);
+  return next;
+}
+function powerStandings(rosters){
+  return TEAM_NAMES.map(t => ({team: t, score: optimalLineupValue(rosters[t])})).sort((a,b)=>b.score-a.score);
+}
+
+function planPathToFirst(myTeam, opts){
+  let rosters = cloneRosters();
+  const steps = [];
+  const start = powerStandings(rosters);
+  for(let step = 0; step < opts.maxTrades; step++){
+    const standings = powerStandings(rosters);
+    const myScore = standings.find(x=>x.team===myTeam).score;
+    const rivalBest = standings.find(x=>x.team!==myTeam).score;
+    const candidates = [];
+    for(const partner of TEAM_NAMES){
+      if(partner === myTeam || state.suggPartnerNever.includes(partner)) continue;
+      if(state.suggPartnerOnly.length && !state.suggPartnerOnly.includes(partner)) continue;
+      generatePairTrades(myTeam, partner, candidates, rosters);
+    }
+    let best = null;
+    for(const c of candidates){
+      const partner = c.teams.find(t => t !== myTeam);
+      if(c.impacts[myTeam] < 0.5 || c.impacts[partner] < opts.partnerMin || c.swing > opts.maxSwing) continue;
+      const newMy = myScore + c.impacts[myTeam];
+      let newRival = -Infinity;
+      for(const x of standings){
+        if(x.team === myTeam) continue;
+        newRival = Math.max(newRival, x.score + (x.team === partner ? c.impacts[partner] : 0));
+      }
+      // margin over the best rival, lightly preferring fair, simple deals
+      const objective = (newMy - newRival) - c.swing * 3 - c.moves.length * 0.15;
+      if(!best || objective > best.objective) best = {...c, partner, objective, newMy, newRival};
+    }
+    if(!best) break;
+    rosters = applyTradeToRosters(rosters, best.moves);
+    const after = powerStandings(rosters);
+    steps.push({trade: best, rank: after.findIndex(x=>x.team===myTeam) + 1, score: best.newMy, rivalScore: after.find(x=>x.team!==myTeam).score, rival: after.find(x=>x.team!==myTeam).team});
+    if(steps[steps.length-1].rank === 1 && opts.stopAtFirst) break;
+  }
+  return {start, steps, finalRosters: rosters};
+}
+
+function renderMyTeamPlan(result){
+  const box = document.getElementById('myTeamPlan');
+  if(!box) return;
+  const myTeam = state.myTeam;
+  if(!myTeam || !LEAGUE[myTeam]){
+    box.innerHTML = `<div class="plan-card"><div class="plan-head"><h4>Path to #1</h4></div><p class="pr-breakdown-note">Set <b>My Team</b> at the top of the page to plan the trades that move you to first in the Power Rankings.</p></div>`;
+    return;
+  }
+  const standings = powerStandings(LEAGUE);
+  const myRank = standings.findIndex(x=>x.team===myTeam) + 1;
+  const my = standings[myRank-1];
+  const leader = standings.find(x=>x.team!==myTeam);
+  const gapText = myRank === 1
+    ? `You're #1 by ${fmt(my.score - leader.score)} over ${leader.team}.`
+    : `#${myRank} of ${standings.length} · ${fmt(standings[0].score - my.score)} behind ${standings[0].team}.`;
+
+  let body = '';
+  if(result){
+    if(!result.steps.length){
+      body = `<p class="pr-breakdown-note">No trade clears these limits. Loosen fairness or partner requirements, or remove players from Never trade.</p>`;
+    } else {
+      body = result.steps.map((st, i) => {
+        const t = st.trade;
+        const moves = t.moves.map(m => {
+          const pl = (m.from === myTeam ? '− ' : '+ ') + m.player;
+          return `<div class="th-change ${m.from === myTeam ? 'remove' : 'add'}">${pl} <span>${m.from} → ${m.to}</span></div>`;
+        }).join('');
+        return `<div class="plan-step">
+          <div class="plan-step-head"><b>Trade ${i+1}</b> with ${t.partner} <span class="need-tag ${st.rank===1?'good':''}">→ #${st.rank} (${fmt(st.score)})</span></div>
+          <div class="th-changes">${moves}</div>
+          <div class="th-teams">${myTeam} lineup <span class="delta-pos">${fmtSigned(t.impacts[myTeam])}</span> · ${t.partner} lineup <span class="${t.impacts[t.partner]>=0?'delta-pos':'delta-neg'}">${fmtSigned(t.impacts[t.partner])}</span> · value gap ±${Math.round(t.swing*100)}%</div>
+          ${i === 0 ? `<button class="load-btn" data-plan-load="0">Load into builder</button>` : `<div class="pr-breakdown-note">Load this after Trade ${i} is completed — it's built on the rosters that trade creates.</div>`}
+        </div>`;
+      }).join('');
+      const last = result.steps[result.steps.length-1];
+      const oddsBefore = runPowerRankings(null, 1500).teams.find(t=>t.team===myTeam).playoffOdds;
+      const simAfter = runPowerRankings(result.finalRosters, 1500);
+      const oddsAfter = simAfter.teams.find(t=>t.team===myTeam).playoffOdds;
+      powerRankingsCache = null; // the no-arg run above replaced the cache with a lighter one
+      const shortfall = last.rank === 1 ? '' : `<div class="pr-breakdown-note" style="margin:-6px 0 12px;">Fair deals alone don't close the gap to #1 here. Allowing more trades, a wider fairness range, or a small partner lineup loss opens up bigger moves.</div>`;
+      body = shortfall + body;
+      body = `<div class="plan-summary">After ${result.steps.length} trade${result.steps.length===1?'':'s'}: <b>#${last.rank}</b> with a power score of <b>${fmt(last.score)}</b> (${last.rank===1 ? `${fmt(last.score - last.rivalScore)} ahead of ${last.rival}` : `${fmt(last.rivalScore - last.score)} behind ${last.rival}`}) · playoff odds ${oddsBefore.toFixed(0)}% → <b>${oddsAfter.toFixed(0)}%</b></div>` + body;
+    }
+  }
+
+  box.innerHTML = `
+    <div class="plan-card">
+      <div class="plan-head">
+        <div>
+          <h4>Path to #1 · ${myTeam}</h4>
+          <div class="pr-breakdown-sub">${gapText}</div>
+        </div>
+      </div>
+      <div class="plan-controls">
+        <div class="field"><label>Up to</label><select id="planMaxTrades"><option value="1">1 trade</option><option value="2">2 trades</option><option value="3" selected>3 trades</option></select></div>
+        <div class="field"><label>Fairness</label><select id="planMaxSwing"><option value="0.1">Within ±10%</option><option value="0.2" selected>Within ±20%</option><option value="0.35">Within ±35%</option><option value="0.5">Within ±50%</option></select></div>
+        <div class="field"><label>Partner's lineup</label><select id="planPartnerMin"><option value="0.3">Must improve</option><option value="0" selected>Can't get worse</option><option value="-2">Small loss OK</option></select></div>
+        <button class="th-apply-btn" id="planRunBtn">${result ? 'Re-plan' : 'Plan my path to #1'}</button>
+      </div>
+      <div class="pr-breakdown-note" style="margin-bottom:10px;">Uses Never trade and the partner chips below. Each step's partner has to find the deal acceptable, and deals that also strengthen the current leader are marked down.</div>
+      ${body}
+    </div>`;
+
+  if(result){
+    ['planMaxTrades','planMaxSwing','planPartnerMin'].forEach(id => document.getElementById(id).value = String(result.opts[id]));
+  }
+  document.getElementById('planRunBtn').addEventListener('click', ()=>{
+    const opts = {
+      maxTrades: parseInt(document.getElementById('planMaxTrades').value, 10),
+      maxSwing: parseFloat(document.getElementById('planMaxSwing').value),
+      partnerMin: parseFloat(document.getElementById('planPartnerMin').value),
+      stopAtFirst: false
+    };
+    const res = planPathToFirst(myTeam, opts);
+    res.opts = {planMaxTrades: opts.maxTrades, planMaxSwing: opts.maxSwing, planPartnerMin: opts.partnerMin};
+    res.forTeam = myTeam;
+    res.rosterSig = rosterSignature();
+    state.lastPlan = res;
+    renderMyTeamPlan(res);
+  });
+  const loadBtn = box.querySelector('[data-plan-load]');
+  if(loadBtn) loadBtn.addEventListener('click', ()=> loadSuggestion(result.steps[0].trade));
 }
 
 function loadSuggestion(s){
@@ -3383,7 +3840,7 @@ const asChecked = el => el.checked;
   ['suggMaxSwing', 'suggMaxSwing', asNumber], ['suggMinValue', 'suggMinValue', asNumber],
   ['suggMaxPlayers', 'suggMaxPlayers', asNumber],
   ['suggEveryoneWins', 'suggEveryoneWins', asChecked], ['suggVariety', 'suggVariety', asChecked],
-  ['suggFillsNeed', 'suggFillsNeed', asChecked]
+  ['suggFillsNeed', 'suggFillsNeed', asChecked], ['suggSurplusFit', 'suggSurplusFit', asChecked]
 ].forEach(([id, key, parse])=>{
   document.getElementById(id).addEventListener('change', onSuggFilterChange(key, parse));
 });
@@ -3396,6 +3853,65 @@ function refreshSuggPlayerList(){
     .map(n => `<option value="${n.replace(/"/g,'&quot;')}"></option>`).join('');
 }
 refreshSuggPlayerList();
+
+function renderPartnerChips(){
+  const wrap = document.getElementById('suggPartnerChips');
+  if(!wrap) return;
+  state.suggPartnerOnly = state.suggPartnerOnly.filter(t => TEAM_NAMES.includes(t));
+  state.suggPartnerNever = state.suggPartnerNever.filter(t => TEAM_NAMES.includes(t));
+  wrap.innerHTML = TEAM_NAMES.map(t => {
+    const cls = state.suggPartnerOnly.includes(t) ? 'only' : (state.suggPartnerNever.includes(t) ? 'never' : '');
+    return `<button class="team-chip ${cls}" data-team="${t.replace(/"/g,'&quot;')}">${t}</button>`;
+  }).join('');
+  wrap.querySelectorAll('.team-chip').forEach(btn => btn.addEventListener('click', ()=>{
+    const t = btn.dataset.team;
+    if(state.suggPartnerOnly.includes(t)){
+      state.suggPartnerOnly = state.suggPartnerOnly.filter(x => x !== t);
+      state.suggPartnerNever.push(t);
+    } else if(state.suggPartnerNever.includes(t)){
+      state.suggPartnerNever = state.suggPartnerNever.filter(x => x !== t);
+    } else {
+      state.suggPartnerOnly.push(t);
+    }
+    state.suggShowCount = 48;
+    renderPartnerChips();
+    renderSuggestions();
+  }));
+}
+
+function renderBlacklistChips(){
+  const wrap = document.getElementById('blacklistChips');
+  if(!wrap) return;
+  wrap.innerHTML = TRADE_BLACKLIST.length
+    ? TRADE_BLACKLIST.map(n => `<button class="bl-chip" data-name="${n.replace(/"/g,'&quot;')}" title="Remove">${n}<span>×</span></button>`).join('')
+    : '<span class="field-hint" style="font-size:11.5px;">Nobody — every player is available.</span>';
+  wrap.querySelectorAll('.bl-chip').forEach(btn => btn.addEventListener('click', ()=> setBlacklisted(btn.dataset.name, false)));
+}
+
+// Changing the list changes which trades exist, so the pool is rescanned.
+function setBlacklisted(name, on){
+  if(on && !TRADE_BLACKLIST.includes(name)) TRADE_BLACKLIST.push(name);
+  if(!on) TRADE_BLACKLIST = TRADE_BLACKLIST.filter(n => n !== name);
+  persistRosterState();
+  invalidateSuggestions();
+  renderBlacklistChips();
+  renderSuggestions();
+  showToast(on ? `${name} won't appear in any suggested trade.` : `${name} is available for trades again.`);
+}
+
+document.getElementById('blacklistAddBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('blacklistInput');
+  const name = matchPlayerAnywhere(input.value.trim());
+  const found = name && (typeof name === 'string' ? name : name.name);
+  if(!found || !ALL_PLAYERS[found]){ showToast('No player by that name — pick one from the list.'); return; }
+  input.value = '';
+  setBlacklisted(found, true);
+});
+document.getElementById('blacklistInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') document.getElementById('blacklistAddBtn').click();
+});
+renderPartnerChips();
+renderBlacklistChips();
 
 document.getElementById('refreshTradesBtn').addEventListener('click', ()=>{
   const btn = document.getElementById('refreshTradesBtn');
@@ -3602,8 +4118,9 @@ function evaluateTradeMoves(moves, teams, ctx){
   const avgNeed = stats.reduce((s,t)=>s+t.needBonus,0) / stats.length;
   const allPositive = stats.every(t=>t.lineupDelta > 0.2);
   // weakest team's gain counts double: "positive for each party" beats a
-  // big win for one side; each 10% of value gap costs about 1 lineup point
-  const score = 2*minDelta + avgDelta + NEED_SCORE_WEIGHT*avgNeed - 10*swing + (allPositive ? 3 : 0);
+  // big win for one side. Each 10% of value gap costs 1.5 lineup points,
+  // and gaps past ±20% cost steeply more — fairness is the first priority.
+  const score = 2*minDelta + avgDelta + NEED_SCORE_WEIGHT*avgNeed - 15*swing - 25*Math.max(0, swing - 0.2) + (allPositive ? 3 : 0);
   return {moves, stats, swing, minDelta, avgDelta, allPositive, score};
 }
 
@@ -4268,6 +4785,7 @@ function faRow(p, opts){
     <span class="fa-note">${opts.showOwner ? '' : freeAgentNote(p)}</span>
     <button class="roster-adjust-btn${hasOverride ? ' active' : ''}" data-adjust-name="${p.name.replace(/"/g,'&quot;')}" title="Manually adjust this player's value">±</button>
     ${canAdd ? `<button class="add-btn">+ Add to ${state.faAddTeam}</button>` : ''}
+    ${playerStatsLine(p, state.faSortBy)}
   `;
   row.querySelector('.roster-adjust-btn').addEventListener('click', ()=> promptValueOverride(p.name));
   if(canAdd){
@@ -4278,6 +4796,51 @@ function faRow(p, opts){
     });
   }
   return row;
+}
+
+function starsHtml(v){
+  if(!v) return '<span class="stars">n/a</span>';
+  const cls = v >= 4 ? 'good' : (v <= 2 ? 'bad' : '');
+  return `<span class="stars ${cls}">${'★'.repeat(v)}${'☆'.repeat(Math.max(0, 5 - v))}</span>`;
+}
+
+// One-line stat summary under each ranked player; the stat being ranked by
+// is highlighted.
+function playerStatsLine(p, sortBy){
+  const st = PLAYER_STATS.byName[p.name];
+  const hl = k => sortBy === k ? ' class="hl"' : '';
+  const parts = [];
+  if(st && st.gp > 0){
+    parts.push(`<span${hl('pts')}><b>${fmt(st.pts)}</b> pts${p.ptsPosRank ? ` (${p.pos}${p.ptsPosRank})` : ''}</span>`);
+    parts.push(`<span${hl('ppg')}><b>${fmt(st.ppg)}</b> ppg · ${st.gp} gp</span>`);
+    if(st.recentGp) parts.push(`<span${hl('recent')}>L3 <b>${fmt(st.recentPpg)}</b> ppg</span>`);
+    if(p.vorp !== null && p.vorp !== undefined) parts.push(`<span${hl('vorp')}>+/- repl <b>${p.vorp>=0?'+':''}${fmt(p.vorp)}</b></span>`);
+  } else {
+    parts.push(`<span>No games this season</span>`);
+  }
+  parts.push(`<span${hl('sos')}>SOS ${starsHtml(p.sosStars)}</span>`);
+  parts.push(`<span${hl('playoff')}>Playoffs ${starsHtml(p.playoffStars)}</span>`);
+  parts.push(`<span${hl('ecr')}>ECR <b>#${p.ovrRank}</b></span>`);
+  if(p.upside || p.bust) parts.push(`<span${hl('upside')}>Upside ${p.upside || '–'} / Bust ${p.bust || '–'}</span>`);
+  return `<div class="fa-stats">${parts.join('')}</div>`;
+}
+
+function playerSortValue(p, sortBy){
+  const st = PLAYER_STATS.byName[p.name];
+  switch(sortBy){
+    case 'pts': return st ? st.pts : -1e9;
+    case 'ppg': return st && st.gp ? st.ppg : -1e9;
+    case 'recent': return st && st.recentGp ? st.recentPpg : -1e9;
+    case 'vorp': return (p.vorp === null || p.vorp === undefined) ? -1e9 : p.vorp;
+    case 'sos': return starsOrNeutral(p.sosStars) * 1000 + p.value;       // ties broken by value
+    case 'playoff': return starsOrNeutral(p.playoffStars) * 1000 + p.value;
+    case 'ecr': return -p.ovrRank;
+    case 'upside': return (starsOrNeutral(p.upside) - starsOrNeutral(p.bust)) * 1000 + p.value;
+    default: return p.value;
+  }
+}
+function sortPlayersBy(list, sortBy){
+  return list.sort((a,b) => playerSortValue(b, sortBy) - playerSortValue(a, sortBy));
 }
 
 function faSection(title, note, players, opts){
@@ -4309,6 +4872,7 @@ function faSection(title, note, players, opts){
 const faPosFilterEl = document.getElementById('faPosFilter');
 faPosFilterEl.addEventListener('change', (e)=>{
   state.faPosFilter = e.target.value;
+  state.faShowCount = 50;
   renderFreeAgentsTab();
 });
 
@@ -4322,6 +4886,7 @@ function renderFreeAgentsTab(){
   faTeamSelectEl.value = state.faAddTeam || '';
   faPosFilterEl.value = state.faPosFilter || 'ALL';
   faViewModeEl.value = state.faViewMode || 'available';
+  document.getElementById('faSortBy').value = state.faSortBy || 'value';
 
   const wrap = document.getElementById('faContent');
   const q = document.getElementById('faSearch').value.trim().toLowerCase();
@@ -4339,10 +4904,7 @@ function renderFreeAgentsTab(){
   const rowOpts = {showOwner: isAllMode};
 
   if(q){
-    const matches = [...sourcePool]
-      .filter(p => p.name.toLowerCase().includes(q))
-      .sort((a,b) => b.value - a.value)
-      .slice(0, 30);
+    const matches = sortPlayersBy([...sourcePool].filter(p => p.name.toLowerCase().includes(q)), state.faSortBy).slice(0, 30);
     wrap.appendChild(faSection(`Search results for "${q}"`, `${matches.length} match${matches.length===1?'':'es'}`, matches, rowOpts));
     return;
   }
@@ -4350,7 +4912,7 @@ function renderFreeAgentsTab(){
   const posFilter = state.faPosFilter || 'ALL';
 
   if(posFilter === 'ALL'){
-    const topOverall = [...sourcePool].sort((a,b)=>b.value-a.value).slice(0, 25);
+    const topOverall = sortPlayersBy([...sourcePool], state.faSortBy).slice(0, state.faShowCount);
     wrap.appendChild(faSection(
       isAllMode ? 'Best players league-wide' : 'Best available pickups',
       isAllMode
@@ -4358,13 +4920,32 @@ function renderFreeAgentsTab(){
         : 'Top free agents league-wide by value, regardless of position — the ones worth a look no matter what your roster needs. Switch "Show position" above to browse one position at a time instead.',
       topOverall, rowOpts
     ));
+    appendFaShowMore(wrap, sourcePool.length);
     return;
   }
 
-  const top = sourcePool.filter(p=>p.pos===posFilter).sort((a,b)=>b.value-a.value).slice(0, 25);
+  const posPool = sourcePool.filter(p=>p.pos===posFilter);
+  const top = sortPlayersBy([...posPool], state.faSortBy).slice(0, state.faShowCount);
   const note = isAllMode ? `${top.length} ${posFilter}${top.length===1?'':'s'} in the league, best to worst.` : positionScarcityNote(posFilter);
   wrap.appendChild(faSection(`${posFilter} — ${isAllMode ? 'all players' : 'best available'}`, note, top, rowOpts));
+  appendFaShowMore(wrap, posPool.length);
 }
+
+function appendFaShowMore(wrap, total){
+  if(total <= state.faShowCount) return;
+  const btn = document.createElement('button');
+  btn.className = 'reset-btn sugg-more-btn';
+  btn.style.marginTop = '12px';
+  btn.textContent = `Show ${Math.min(50, total - state.faShowCount)} more`;
+  btn.addEventListener('click', ()=>{ state.faShowCount += 50; renderFreeAgentsTab(); });
+  wrap.appendChild(btn);
+}
+
+document.getElementById('faSortBy').addEventListener('change', (e)=>{
+  state.faSortBy = e.target.value;
+  state.faShowCount = 50;
+  renderFreeAgentsTab();
+});
 
 renderFreeAgentsTab();
 
@@ -4393,9 +4974,11 @@ function gaussianRandom(mean, stdev){
 // schedule, so each simulated season randomizes weekly matchups — run over
 // thousands of trials, that averages out to a fair strength-based estimate
 // rather than being distorted by one arbitrary schedule guess.
-function runPowerRankings(){
+function runPowerRankings(rosters, sims){
+  const cacheIt = !rosters;
+  rosters = rosters || LEAGUE;
   const teams = TEAM_NAMES.map(t=>{
-    const roster = LEAGUE[t];
+    const roster = rosters[t];
     const overallScore = optimalLineupValue(roster);
     const posScores = {};
     ['QB','RB','WR','TE'].forEach(pos => { posScores[pos] = computePositionScore(roster, pos); });
@@ -4411,7 +4994,7 @@ function runPowerRankings(){
     t.weeklyStdev = t.weeklyMean * 0.16;
   });
 
-  const SIMS = 4000;
+  const SIMS = sims || 4000;
   const WEEKS = 13;
   const PLAYOFF_SPOTS = 6;
 
@@ -4449,8 +5032,9 @@ function runPowerRankings(){
     t.avgPF = pfTotal[t.team] / SIMS;
   });
 
-  powerRankingsCache = {teams, simRuns: SIMS, playoffSpots: PLAYOFF_SPOTS, weeks: WEEKS};
-  return powerRankingsCache;
+  const result = {teams, simRuns: SIMS, playoffSpots: PLAYOFF_SPOTS, weeks: WEEKS};
+  if(cacheIt) powerRankingsCache = result;
+  return result;
 }
 
 document.getElementById('powerTeamSelect').addEventListener('change', (e)=>{
@@ -4488,7 +5072,7 @@ function renderPowerTeamBreakdown(){
     ? tp.strengths.map(pos => `<span class="need-tag good">Strength: ${pos} · ${ordinal(tp.rank[pos])} in league</span>`).join('')
     : `<span class="pr-breakdown-note">No position well above the pack</span>`;
 
-  let rows = `<div class="pr-pos-row head"><span>Slot</span><span>Starter value vs. league (line = average)</span><span style="text-align:right">Value</span><span style="text-align:right">vs. avg</span><span style="text-align:right">Rank</span></div>`;
+  let rows = `<div class="pr-pos-row head"><span>Slot</span><span>Starter value vs. league (line = average)</span><span style="text-align:right">Value</span><span style="text-align:right">Above avg</span><span style="text-align:right">Rank</span></div>`;
   BREAKDOWN_POSITIONS.forEach(pos=>{
     const score = tp.scores[pos], lg = prof.league[pos];
     const pct = Math.max(2, (score / lg.best) * 100);
@@ -4503,11 +5087,28 @@ function renderPowerTeamBreakdown(){
         <span class="poschip ${pos}">${pos}</span>
         <div class="pr-pos-track"><div class="pr-pos-fill" style="width:${pct}%;background:var(${colorVar[pos]});"></div><div class="pr-pos-avg" style="left:${avgPct}%;"></div></div>
         <span class="pr-pos-num">${fmt(score)}</span>
-        <span class="pr-pos-num ${cls}">${vs>=0?'+':''}${Math.round(vs*100)}%</span>
+        <span class="pr-pos-num ${cls}" title="${fmtSigned(score - lg.avg)} pts vs league average">${vs>=0?'+':''}${Math.round(vs*100)}%<span class="pr-pos-sub">${fmtSigned(score - lg.avg)}</span></span>
         <span class="pr-pos-num">${ordinal(tp.rank[pos])}<span style="color:var(--chalk-faint);font-weight:500;font-size:11px;"> /${n}</span></span>
         <div class="pr-pos-players">${starters}${depth}</div>
       </div>`;
   });
+
+  // Best-fit partners: teams whose surplus (value above league average at a
+  // position) lines up with this team's needs, and who need what this team
+  // has in surplus — the natural counterparties for a surplus-for-need deal.
+  const surplusPts = (t, pos) => prof.teams[t].scores[pos] - prof.league[pos].avg;
+  const partners = TEAM_NAMES.filter(o => o !== team).map(o => {
+    const op = prof.teams[o];
+    const theyGive = tp.needs.filter(nd => op.vsAvg[nd.pos] >= 0.05 || op.bench[nd.pos].some(x => x.value >= prof.league[nd.pos].avg / (LINEUP_SLOTS[nd.pos] || 1) * 0.6));
+    const weGive = op.needs.filter(nd => tp.vsAvg[nd.pos] >= 0.05);
+    const fit = theyGive.reduce((sum,nd) => sum + Math.max(0, surplusPts(o, nd.pos)) + 2, 0) + weGive.reduce((sum,nd) => sum + Math.max(0, surplusPts(team, nd.pos)) + 2, 0);
+    return {team: o, theyGive, weGive, fit};
+  }).filter(x => x.theyGive.length && x.fit > 0).sort((a,b) => b.fit - a.fit).slice(0, 3);
+  const partnersHtml = tp.needs.length ? `
+    <div class="pr-partners">
+      <div class="pr-tag-label" style="margin-bottom:6px;">Best-fit trade partners</div>
+      ${partners.length ? partners.map(x => `<div class="pr-partner-line"><b>${x.team}</b> — has ${x.theyGive.map(nd => `${nd.pos} depth (${fmtSigned(surplusPts(x.team, nd.pos))} vs avg)`).join(', ')}${x.weGive.length ? `; needs ${x.weGive.map(nd => `${nd.pos}, where you're ${fmtSigned(surplusPts(team, nd.pos))}`).join(', ')}` : ''}</div>`).join('') : '<div class="pr-breakdown-note">No team has clear surplus at these positions.</div>'}
+    </div>` : '';
 
   box.innerHTML = `
     <div class="pr-breakdown">
@@ -4520,12 +5121,23 @@ function renderPowerTeamBreakdown(){
       <div class="pr-tag-group"><span class="pr-tag-label">Team needs</span>${needTags}</div>
       <div class="pr-tag-group"><span class="pr-tag-label">Strengths</span>${strengthTags}</div>
       ${rows}
+      ${partnersHtml}
       <div class="pr-breakdown-foot">
         ${tp.needs.length ? `<button class="reset-btn" id="prFindNeedTrades">Find trades that fill ${tp.needs.map(nd=>nd.pos).join(' / ')}</button>` : ''}
+        ${tp.needs.length ? `<button class="reset-btn" id="prFindSurplusTrades">Trade surplus for needs</button>` : ''}
         <span class="pr-breakdown-note">A need is a starting slot at least 10% below league average, or in the league's bottom two. Suggested Trades tags and ranks trades that fill them.</span>
       </div>
     </div>`;
 
+  const sbtn = document.getElementById('prFindSurplusTrades');
+  if(sbtn) sbtn.addEventListener('click', ()=>{
+    state.suggTeam1 = team; state.suggTeam2 = '';
+    state.suggSurplusFit = true; state.suggFillsNeed = false; state.suggSortBy = 'surplus'; state.suggShowCount = 48;
+    document.getElementById('suggSurplusFit').checked = true;
+    document.getElementById('suggFillsNeed').checked = false;
+    document.getElementById('suggSortBy').value = 'surplus';
+    document.querySelector('.tab-btn[data-tab="suggested"]').click();
+  });
   const btn = document.getElementById('prFindNeedTrades');
   if(btn) btn.addEventListener('click', ()=>{
     state.suggTeam1 = team; state.suggTeam2 = '';
@@ -4656,7 +5268,9 @@ const SCORING_FIELDS = [
   {group:'Special Teams Player', key:'stPlayerForcedFumble', label:'Forced Fumble'},
   {group:'Special Teams Player', key:'stPlayerFumbleRec', label:'Fumble Recovery'},
   {group:'Misc', key:'fumbleLost', label:'Fumble Lost'},
-  {group:'Misc', key:'fumbleRecTD', label:'Fumble Recovery TD'}
+  {group:'Misc', key:'fumbleRecTD', label:'Fumble Recovery TD'},
+  {group:'Valuation weights', key:'sosWeight', label:'Schedule (SOS) emphasis — 1 = ±15% max', step:0.1},
+  {group:'Valuation weights', key:'statsWeight', label:'Season production emphasis — 1 = up to 50%', step:0.1}
 ];
 
 function renderSettingsImpact(){
@@ -5274,6 +5888,24 @@ document.addEventListener('visibilitychange', ()=>{
 window.addEventListener('online', ()=>{
   if(BACKEND_URL) syncFromBackendOnLoad();
 });
+
+// Stats changed (fresh fetch) — every value, ranking and suggestion moves.
+function onPlayerStatsChanged(){
+  recomputeAllValues();
+  invalidateSuggestions();
+  powerRankingsCache = null;
+  renderAll();
+  const active = (document.querySelector('.tab-panel.active') || {}).id;
+  if(active === 'tab-rosters') renderRostersTab();
+  if(active === 'tab-suggested') renderSuggestions();
+  if(active === 'tab-freeagents') renderFreeAgentsTab();
+  if(active === 'tab-power') renderPowerRankingsTab();
+}
+document.getElementById('refreshStatsBtn').addEventListener('click', ()=> refreshPlayerStats());
+renderStatsStatus();
+if(!PLAYER_STATS.fetchedAt || Date.now() - new Date(PLAYER_STATS.fetchedAt).getTime() > STATS_MAX_AGE_MS){
+  refreshPlayerStats({silent: true});
+}
 
 </script>
 
